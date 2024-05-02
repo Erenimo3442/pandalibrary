@@ -1,0 +1,43 @@
+{% extends 'index.html' %}
+{% block content %}
+    <div class="container">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h1>Create Game</h1>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title*</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="mb-3">
+            <label for="developer" class="form-label">Developer*</label>
+            <input type="text" class="form-control" id="developer" name="developer" required>
+        </div>
+        <div class="mb-3">
+            <label for="release-date" class="form-label">Release Date</label>
+            <input type="date" class="form-control" id="release_date" name="release_date">
+        </div>
+        <div class="col-sm-10">
+            <label for="platform" class="form-label">Platform</label>
+            <select id="platform" name="status" class="form-control">
+                <option value="pc">PC</option>
+                <option value="playstation4">Playstation 4</option>
+                <option value="xbox">Xbox</option>
+                <option value="mobile">Mobile</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="genre" class="form-label">Genre</label>
+            <input type="text" class="form-control" id="genre" name="genre">
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <input type="text" class="form-control" id="description" name="description">
+        </div>
+        <div class="mb-3">
+            <label for="cover" class="form-label">Cover image</label>
+            <input class="form-control" type="file" id="cover" name="cover">
+        </div>
+        <button type="submit" class="btn btn-primary">Create Game</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'index.html' %}
+{% block additional_scripts %}
+<script>
+$(document).ready(function() {
+    $('#status').change(function() {
+        var game_id = $('#game').val();
+        var status = $(this).val();
+        $.ajax({
+            url: '{% url "games:update_game_status" %}',
+            type: 'POST',
+            data: {
+                'game_id': game_id,
+                'status': status,
+                'csrfmiddlewaretoken': '{% csrf_token %}'
+            },
+            dataType: 'json',
+            success: function(data) {
+                if(data.status == 'success') {
+                    alert('Game status updated successfully');
+                } else {
+                    alert('Failed to update game status');
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% block content %}
+<h2>Add Game</h2>
+
+<form method="post" class="form-horizontal">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="game" class="col-sm-2 control-label">Game</label>
+        <div class="col-sm-10">
+            <select id="game" name="game" class="form-control">
+                {% for game in games %}
+                <option value="{{ game.id }}">{{ game.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="status" class="col-sm-2 control-label">Status</label>
+        <div class="col-sm-10">
+            <select id="status" name="status" class="form-control">
+                <option value="playing">Playing Now</option>
+                <option value="will_play">Will Play</option>
+                <option value="finished">Finished</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">Add game</button>
+        </div>
+    </div>
+</form>
+{% endblock %}
