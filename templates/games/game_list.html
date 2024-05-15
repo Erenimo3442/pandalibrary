@@ -16,8 +16,8 @@
 <div class="container">
     <div class="row">
         {% for game in games %}
-        <div class="col-md-2 game-card">
-            <a href="#" style="color: inherit; text-decoration: none;">
+        <div class="col-md-2 game-card" id="game-{{ game.pk }}">
+            <a href="{% url 'games:game_detail' game.pk %}" style="color: inherit; text-decoration: none;">
                 <div class="card" style="width: 18rem;">
                     {% if game.cover %}
                     <img src="{{ game.cover.url }}" class="card-img-top" alt="{{ game.title }}">

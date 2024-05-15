@@ -86,3 +86,20 @@ def update_game_status(request):
             return JsonResponse({'status': 'failed'})
     else:
         return JsonResponse({'status': 'failed'})
+
+@login_required
+def delete_game(request):
+    if request.method == 'POST':
+        try:
+            game_id = request.POST.get('game_id')
+            UserGames.objects.filter(user=request.user, game_id=game_id).delete()
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            logger.exception(e)
+            return JsonResponse({'status': 'failed'})
+    else:
+        return JsonResponse({'status': 'failed'})
+
+def game_detail(request, game_i):
+    game = get_object_or_404(Game, pk=game_i)
+    return render(request, 'games/game_detail.html', {'game': game})

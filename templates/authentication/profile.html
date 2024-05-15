@@ -83,8 +83,8 @@ $(function() {
         element.draggable({
             revert: "invalid",
             helper: function() {
-                // Create a new game element without the delete button
-                return $('<div>').addClass('game').data('id', $(this).data('id')).text($(this).text());
+                // Clone the entire game element, including the delete button
+                return $(this).clone();
             }
         });
     }
@@ -92,42 +92,71 @@ $(function() {
     makeDraggable($(".game"));
 
     $(".column").droppable({
-        accept: ".game",
-        drop: function(event, ui) {
-            var game_id = ui.helper.data('id');
-            var status = $(this).attr('id');
-            var droppableElement = $(this);
+    accept: ".game",
+    drop: function(event, ui) {
+        var game_id = ui.helper.data('id');
+        var status = $(this).attr('id');
+        var droppableElement = $(this);
 
-            // Send AJAX request to server to update game status
-            $.ajax({
-                url: '{% url 'games:update_game_status' %}',  // replace with the actual URL of your view
-                method: 'POST',
-                data: {
-                    'game_id': game_id,
-                    'status': status,
-                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
-                },
-                success: function(data) {
-                    // Create a new game element with the same content as the dragged game
-                    var newGame = $('<div>').addClass('game').data('id', game_id).text(ui.helper.text());
+        // Send AJAX request to server to update game status
+        $.ajax({
+            url: '{% url 'games:update_game_status' %}',  // replace with the actual URL of your view
+            method: 'POST',
+            data: {
+                'game_id': game_id,
+                'status': status,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function(data) {
+                // Create a new clone of the original game
+                var newGame = ui.draggable.clone();
 
-                    // Create a new delete button
-                    var deleteButton = $('<button>').addClass('delete-game').html('&#x2715;');
+                // Append the new game to the column
+                newGame.appendTo(droppableElement);
 
-                    // Append the delete button to the new game
-                    newGame.append(deleteButton);
+                // Make the new game draggable
+                makeDraggable(newGame);
 
-                    // Append the new game to the column
-                    newGame.appendTo(droppableElement);
+                // Remove the original game from its original column
+                ui.draggable.remove();
+            }
+        });
+    }
+});
 
-                    // Make the new game draggable
-                    makeDraggable(newGame);
+    // Attach a click event handler to the existing delete buttons
+    $('.delete-game').click(function() {
+        var game_id = $(this).parent().data('id');
 
-                    // Remove the original game from its original column
-                    ui.draggable.remove();
-                }
-            });
-        }
+        $.ajax({
+            url: '{% url 'games:delete_game' %}',  // replace with the actual URL of your delete view
+            method: 'POST',
+            data: {
+                'game_id': game_id,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function(data) {
+                // Remove the game element from the DOM
+                $(this).parent().remove();
+            }.bind(this)
+        });
+    });
+    // Attach a click event handler to the existing and future delete buttons
+    $(document).on('click', '.delete-game', function() {
+        var game_id = $(this).parent().data('id');
+
+        $.ajax({
+            url: '{% url 'games:delete_game' %}',  // replace with the actual URL of your delete view
+            method: 'POST',
+            data: {
+                'game_id': game_id,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function(data) {
+                // Remove the game element from the DOM
+                $(this).parent().remove();
+            }.bind(this)
+        });
     });
 });
 </script>
