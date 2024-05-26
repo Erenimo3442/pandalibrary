@@ -8,9 +8,11 @@ app_name = 'games'
 
 urlpatterns = [
 	path('add_game/', views.add_game, name='add_game'),
-	path('game_list', views.game_list, name='game_list'),
+	path('game_list/', views.game_list, name='game_list'),
 	path('game_create/', views.game_create, name='game_create'),
 	path('delete_game/', views.delete_game, name='delete_game'),
 	path('update_game_status/', views.update_game_status, name='update_game_status'),
 	path('game/<int:game_id>/', views.game_detail, name='game_detail'),
+	path('game/<int:game_id>/edit', views.edit_game, name='edit_game'),
+	path('game/<int:game_id>/rate_game/<int:rating>', views.rate_game, name='rate_game'),
 ]

@@ -1,4 +1,4 @@
-import logging
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from members.forms import UserGamesForm
@@ -7,7 +7,7 @@ from .models import Game
 from .forms import GameForm
 from django.contrib import messages
 from django.http import JsonResponse
-
+from django.db import transaction
 
 # Create your views here.
 def game_list(request):
@@ -36,7 +36,6 @@ def add_game(request):
 
     return render(request, 'games/add_games.html', {'form': form, 'games': games})
 
-
 def game_create(request):
     if request.method == 'POST':
         form = GameForm(request.POST)
@@ -62,44 +61,71 @@ def game_create(request):
         form = GameForm()
     return render(request, 'games/game_create.html', {'form': form})
 
+def edit_game(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    if request.method == 'POST':
+        form = GameForm(request.POST, request.FILES, instance=game)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Game has been updated successfully')
+            return redirect('games:game_list')
+        else:
+            messages.error(request, 'Error updating game. Please try again')
+            return redirect('games:edit_game', game_id=game_id)
+    else:
+        form = GameForm(instance=game)
+    return render(request, 'games/edit_game.html', {'form': form})
+
 def delete_game(request):
     game_id = request.POST.get('game_id')
     UserGames.objects.filter(game_id=game_id, user=request.user).delete()
     return JsonResponse({'status': 'success'})
 
 
-logger = logging.getLogger((__name__))
-
-
 @login_required
+@transaction.atomic
 def update_game_status(request):
     if request.method == 'POST':
-        try:
-            game_id = request.POST.get('game_id')
-            new_status = request.POST.get('status')
-            user_game = get_object_or_404(UserGames, user=request.user, game_id=game_id)
-            user_game.status = new_status
-            user_game.save()
-            return JsonResponse({'status': 'success'})
-        except Exception as e:
-            logger.exception(e)
-            return JsonResponse({'status': 'failed'})
+        game_id = request.POST.get('game_id')
+        new_status = request.POST.get('status')
+        user_game = get_object_or_404(UserGames, user=request.user, game_id=game_id)
+        user_game.status = new_status
+        user_game.save()
+        return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({'status': 'failed'})
 
 @login_required
 def delete_game(request):
     if request.method == 'POST':
-        try:
-            game_id = request.POST.get('game_id')
-            UserGames.objects.filter(user=request.user, game_id=game_id).delete()
-            return JsonResponse({'status': 'success'})
-        except Exception as e:
-            logger.exception(e)
-            return JsonResponse({'status': 'failed'})
+        game_id = request.POST.get('game_id')
+        UserGames.objects.filter(user=request.user, game_id=game_id).delete()
+        return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({'status': 'failed'})
 
+
 def game_detail(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
-    return render(request, 'games/game_detail.html', {'game': game})
+    star_range = range(5)
+    total = 0
+    for object in UserGames.objects.filter(game=game):
+        total += object.rating
+    return render(request, 'games/game_detail.html', {'game': game, 'star_range': star_range})
+
+
+@login_required
+@require_POST
+def rate_game(request, game_id, rating):
+    if request.method == 'POST':
+        game = get_object_or_404(Game, pk=game_id)
+        user_game = get_object_or_404(UserGames, user=request.user, game=game)
+        user_game.rating = rating
+        user_game.save()
+
+        total = 0
+        for object in UserGames.objects.filter(game=game):
+            total += object.rating
+        game.average_rating = total / UserGames.objects.filter(game=game).count()
+        game.save()
+        return JsonResponse({'average_rating': user_game.rating})

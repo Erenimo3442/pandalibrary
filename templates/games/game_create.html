@@ -1,9 +1,15 @@
 {% extends 'index.html' %}
 {% block content %}
-    <div class="container">
+
+<div class="container text-center">
+    <div class="row" style="padding-top: 10px; margin-top: 3%; text-align: left; border-bottom: 1px solid black; ">
+        <h2>Create Game</h2>
+    </div>
+</div>
+
+<div class="container" style="margin-top: 20px;">
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <h1>Create Game</h1>
         <div class="mb-3">
             <label for="title" class="form-label">Title*</label>
             <input type="text" class="form-control" id="title" name="title" required>
@@ -20,7 +26,7 @@
             <label for="platform" class="form-label">Platform</label>
             <select id="platform" name="status" class="form-control">
                 <option value="pc">PC</option>
-                <option value="playstation4">Playstation 4</option>
+                <option value="playstation">Playstation</option>
                 <option value="xbox">Xbox</option>
                 <option value="mobile">Mobile</option>
             </select>

@@ -8,17 +8,32 @@
             <h2>{{ game.title }}</h2>
             <p>Released on: {{game.release_date}}<p></p>
         </div>
+        <div class="col" style="text-align: right;">
+            {% if user.is_superuser %}
+                <p><a class="btn btn-primary btn-lg" href="{% url 'games:edit_game' game.id %}">Edit Game</a></p>
+            {% endif %}
+        </div>
     </div>
-    <div class="row">
-  </div>
-    <div class="row" style="padding-top: 1%; margin-top: 15px; text-align: left; border: 1px solid black; border-radius: 10px; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);">
+    <div class="row" style="padding: 2%; margin-top: 15px; text-align: left; border: 1px solid black; border-radius: 10px; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);">
         <div class="col">
-          <img src="{{ game.cover.url }}" class="card-img-top" alt="{{ game.title }}" style="width: 300px; border-radius: 20px;">
+            <img {% if game.cover %} src="{{ game.cover.url }}" {% else %} src="{% static 'game1.jpg' %}" {% endif %} class="card-img-top" alt="{{ game.title }}" style="width: 400px; height: 600px; object-fit: cover; border-radius: 10px">
         </div>
         <div class="col">
-          <h3>Platforms</h3>
-          <p>{{ game.description }}</p>
-
+            <h3>Description</h3>
+            <p>{{ game.description }}</p>
+            <h3>Genre</h3>
+            <p>{{ game.genre }}</p>
+            <h3>Platform</h3>
+            <p>{{ game.platform }}</p>
+            <h3>Developer</h3>
+            <p>{{ game.developer }}</p>
+            <h3>Rating</h3>
+            <div class="stars">
+                {% for i in star_range %}
+                    <i class="fas fa-star star" data-value="{{ i|add:1 }}"></i>
+                {% endfor %}
+                <p>{{ game.average_rating }}</p>
+            </div>
         </div>
       <div class="row">
         <div class="col">
@@ -30,6 +45,69 @@
         <div class="col">
           xd
         </div>
+      </div>
     </div>
 </div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    var stars = document.querySelectorAll('.star');
+    var game_id = {{ game.id }};
+    stars.forEach(function(star) {
+        star.addEventListener('mouseover', function() {
+            var value = this.getAttribute('data-value');
+            stars.forEach(function(star) {
+                if (star.getAttribute('data-value')<= value) {
+                    star.classList.add('hover');
+                } else {
+                    star.classList.remove('hover');
+                }
+            });
+        });
+        star.addEventListener('mouseout', function() {
+            stars.forEach(function(star) {
+                star.classList.remove('hover');
+            });
+        });
+        star.addEventListener('click', function() {
+            var value = this.getAttribute('data-value');
+            fetch('/games/game/' + game_id + '/rate_game/'+ value, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                var average_rating = data.average_rating;
+                console.log("Average rating: " + average_rating);  // Add this line
+                stars.forEach(function(star) {
+                    var star_value = star.getAttribute('data-value');
+                    console.log("Star value: " + star_value);  // Add this line
+                    if (star_value <= average_rating) {
+                        star.classList.add('rated');
+                    } else {
+                        star.classList.remove('rated');
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block additional_styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<style>
+    .star {
+    font-size: 20px;
+    margin-right: 5px;
+    color: #ccc;
+    }
+
+    .star.hover, .star.rated {
+        color: orange;
+    }
+</style>
 {% endblock %}
