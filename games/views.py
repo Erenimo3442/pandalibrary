@@ -14,7 +14,7 @@ def game_list(request):
     games = Game.objects.all()
     return render(request, template_name='games/game_list.html', context={'games': games})
 
-
+@login_required
 def add_game(request):
     games = Game.objects.all()
     if request.method == 'POST':
@@ -100,6 +100,6 @@ def delete_game(request):
     else:
         return JsonResponse({'status': 'failed'})
 
-def game_detail(request, game_i):
-    game = get_object_or_404(Game, pk=game_i)
+def game_detail(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
     return render(request, 'games/game_detail.html', {'game': game})
