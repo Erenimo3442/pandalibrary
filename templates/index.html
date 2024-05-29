@@ -35,12 +35,16 @@
       </ul>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/members/login_user' %}active{% endif %}"
+                 href="{% url 'members:social' %}">Social</a>
+            </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" >
                   {{ user.username }}
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="{% url 'members:profile' %}">Profile</a></li>
+                  <li><a class="dropdown-item" href="{% url 'members:profile' user.username %} ">Profile</a></li>
                   <li><a class="dropdown-item" href="{% url 'members:logout' %}">Log out</a></li>
                 </ul>
             </li>
@@ -108,7 +112,6 @@
             </div>
           </div>
         </div>
-        <!-- Daha fazla oyun resmi ekleyebilirsiniz -->
       </div>
       <button class="carousel-control-prev" type="button" data-bs-target="#gameCarousel" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -155,7 +158,6 @@
             </div>
           </div>
         </div>
-        <!-- Daha fazla oyun resmi ekleyebilirsiniz -->
       </div>
       <button class="carousel-control-prev" type="button" data-bs-target="#gameCarousel2" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>

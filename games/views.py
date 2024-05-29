@@ -27,7 +27,7 @@ def add_game(request):
                 return redirect('games:add_game')
             user_game.save()
             messages.success(request, 'Game has been added to your profile')
-            return redirect('members:profile')
+            return redirect('members:profile', username=request.user.username)
         else:
             messages.error(request, 'Error adding game to your profile. Please try again')
             return redirect('games:add_game')

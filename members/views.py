@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib import messages
 from .forms import SignUpForm, UserGamesForm
 from .models import UserGames
@@ -46,8 +47,18 @@ def logout_user(request):
     messages.success(request, 'You have successfully logged out')
     return redirect('index')
 
-def profile_page(request):
-    user_games = UserGames.objects.filter(user=request.user)
+def profile_page(request, username):
+
+    if username is None:
+        user = request.user
+    else:
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            messages.error(request, 'User does not exist')
+            return redirect('index')
+
+    user_games = UserGames.objects.filter(user=user)
     playing_games = user_games.filter(status='playing')
     will_play_games = user_games.filter(status='will_play')
     finished_games = user_games.filter(status='finished')
@@ -58,10 +69,11 @@ def profile_page(request):
             user_game = form.save(commit=False)
             user_game.user = request.user
             user_game.save()
-            return redirect('profile')
+            return redirect('profile', username=username)
     else:
         form = UserGamesForm()
     context = {
+        'user': user,
         'form': form,
         'playing_games': playing_games,
         'will_play_games': will_play_games,
@@ -69,3 +81,7 @@ def profile_page(request):
     }
 
     return render(request, 'authentication/profile.html', context)
+
+def social(request):
+    users = User.objects.all()
+    return render(request, 'authentication/social.html', {'users': users})
