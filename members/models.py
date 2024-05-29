@@ -6,7 +6,7 @@ from games.models import Game
 
 class UserGames(models.Model):
     STATUS_CHOICES = [
-        ('playing', 'Playing Now'),
+        ('playing', 'Playing'),
         ('will_play', 'Will Play'),
         ('finished', 'Finished'),
     ]

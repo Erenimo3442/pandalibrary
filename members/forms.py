@@ -10,8 +10,16 @@ class SignUpForm(UserCreationForm):
         fields = ('username', 'password1', 'password2', )
 
 class UserGamesForm(forms.ModelForm):
-    game = forms.ModelChoiceField(queryset=Game.objects.all())
-
     class Meta:
+        CHOICES = [
+            ('Playing', 'Playing'),
+            ('Will Play', 'Will Play'),
+            ('Finished', 'Finished'),
+        ]
+        game = Game.objects.all()
         model = UserGames
         fields = ['game', 'status']
+        widgets = {
+            'game': forms.Select(choices=game, attrs={'class': 'form-control'}),
+            'status': forms.Select(choices=CHOICES, attrs={'class': 'form-control'}),
+        }

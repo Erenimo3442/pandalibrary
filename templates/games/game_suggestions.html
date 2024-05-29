@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Game Suggestions</h1>
+    <ul>
+        {% for suggestion in suggestions %}
+        <li>
+            <a href="{% url 'games:game_create_with_suggestion' suggestion.id %}">{{ suggestion.title }}</a> suggested by {{ suggestion.suggested_by.username }}
+        </li>
+        {% empty %}
+        <li>No game suggestions.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

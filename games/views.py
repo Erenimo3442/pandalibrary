@@ -1,21 +1,24 @@
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from members.forms import UserGamesForm
 from members.models import UserGames
-from .models import Game
-from .forms import GameForm
+from .models import Game, Comment, GameSuggestion
+from .forms import GameForm, CommentForm, SuggestionsForm
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.db import transaction
+
 
 # Create your views here.
 def game_list(request):
     games = Game.objects.all()
     return render(request, template_name='games/game_list.html', context={'games': games})
 
+
 @login_required
-def add_game(request):
+def add_game(request, game_id=None):
     games = Game.objects.all()
     if request.method == 'POST':
         form = UserGamesForm(request.POST)
@@ -32,11 +35,16 @@ def add_game(request):
             messages.error(request, 'Error adding game to your profile. Please try again')
             return redirect('games:add_game')
     else:
-        form = UserGamesForm()
+        if game_id:
+            game = get_object_or_404(Game, pk=game_id)
+            form = UserGamesForm(initial={'game': game})
+        else:
+            form = UserGamesForm()
 
     return render(request, 'games/add_games.html', {'form': form, 'games': games})
 
-def game_create(request):
+
+def game_create(request, suggestion_id=None):
     if request.method == 'POST':
         form = GameForm(request.POST)
         if form.is_valid():
@@ -58,13 +66,23 @@ def game_create(request):
             messages.error(request, 'Error creating game. Please try again')
             return redirect('games:game_create')
     else:
-        form = GameForm()
+        if suggestion_id:
+            suggestion = get_object_or_404(GameSuggestion, pk=suggestion_id)
+            form = GameForm(initial={'title': suggestion.title})
+            suggestion.delete()
+        else:
+            form = GameForm()
     return render(request, 'games/game_create.html', {'form': form})
+
 
 def edit_game(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     if request.method == 'POST':
         form = GameForm(request.POST, request.FILES, instance=game)
+        if 'action' in request.POST and request.POST['action'] == 'delete':
+            game.delete()
+            messages.success(request, 'Game has been deleted successfully')
+            return redirect('games:game_list')
         if form.is_valid():
             form.save()
             messages.success(request, 'Game has been updated successfully')
@@ -75,11 +93,6 @@ def edit_game(request, game_id):
     else:
         form = GameForm(instance=game)
     return render(request, 'games/edit_game.html', {'form': form})
-
-def delete_game(request):
-    game_id = request.POST.get('game_id')
-    UserGames.objects.filter(game_id=game_id, user=request.user).delete()
-    return JsonResponse({'status': 'success'})
 
 
 @login_required
@@ -95,8 +108,9 @@ def update_game_status(request):
     else:
         return JsonResponse({'status': 'failed'})
 
+
 @login_required
-def delete_game(request):
+def remove_game(request):
     if request.method == 'POST':
         game_id = request.POST.get('game_id')
         UserGames.objects.filter(user=request.user, game_id=game_id).delete()
@@ -107,11 +121,32 @@ def delete_game(request):
 
 def game_detail(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
+    comments = game.comments.all()
+    new_comment = None
     star_range = range(5)
-    total = 0
-    for object in UserGames.objects.filter(game=game):
-        total += object.rating
-    return render(request, 'games/game_detail.html', {'game': game, 'star_range': star_range})
+    if request.user.is_authenticated:
+        user_has_game = UserGames.objects.filter(user=request.user, game=game).exists()
+    else:
+        user_has_game = False
+
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.user = request.user
+            new_comment.game = game
+            new_comment.save()
+            return HttpResponseRedirect(reverse('games:game_detail', kwargs={'game_id': game.pk}))
+    else:
+        comment_form = CommentForm()
+
+    return render(request, 'games/game_detail.html',
+                  {'game': game,
+                   'star_range': star_range,
+                   'user_has_game': user_has_game,
+                   'comments': comments,
+                   'new_comment': new_comment,
+                   'comment_form': comment_form})
 
 
 @login_required
@@ -125,7 +160,27 @@ def rate_game(request, game_id, rating):
 
         total = 0
         for object in UserGames.objects.filter(game=game):
-            total += object.rating
+            try:
+                total += object.rating
+            except:
+                pass
         game.average_rating = total / UserGames.objects.filter(game=game).count()
         game.save()
         return JsonResponse({'average_rating': user_game.rating})
+
+
+def game_suggestions(request):
+    suggestions = GameSuggestion.objects.all()
+    return render(request, 'games/game_suggestions.html', {'suggestions': suggestions})
+
+
+def suggestion_create(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        suggestion = GameSuggestion(title=title, suggested_by=request.user)
+        suggestion.save()
+        messages.success(request, 'Suggestion has been created successfully')
+        return redirect('games:game_suggestions')
+    else:
+        form = SuggestionsForm()
+    return render(request, 'games/suggestion_create.html', {'form': form})

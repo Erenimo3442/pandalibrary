@@ -22,9 +22,16 @@
         <div class="col">
             <h2>Games</h2>
         </div>
+        {% if request.user.username == "admin" %}
         <div class="col" style="text-align: right">
+        <p><a class="btn btn-primary btn-lg" href="{% url 'games:game_suggestions' %}" role="button">Show Suggestions</a></p>
             <p><a class="btn btn-primary btn-lg" href="{% url 'games:game_create' %}" role="button">Create One</a></p>
         </div>
+        {% elif user.is_authenticated %}
+        <div class="col" style="text-align: right">
+            <p><a class="btn btn-primary btn-lg" href="{% url 'games:suggestion_create' %}" role="button">Suggest One</a></p>
+        </div>
+        {% endif %}
     </div>
 </div>
 <div class="container">

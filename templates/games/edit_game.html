@@ -11,7 +11,8 @@
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form }}
-        <button type="submit" class="btn btn-primary">Edit Game</button>
+        <button type="submit" class="btn btn-primary" style="margin-top: 20px">Edit Game</button>
+        <button type="submit" name="action" value="delete" class="btn btn-primary" style="margin-top: 20px; margin-left: 1050px; border-color: darkred; background-color: darkred">Delete Game</button>
     </form>
 </div>
 {% endblock %}

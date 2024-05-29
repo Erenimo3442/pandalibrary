@@ -60,13 +60,15 @@
         </form>
         <div class="columns-container">
             <div id="playing" class="column">
-                <h3>Playing Now</h3>
+                <h3>Playing</h3>
                 {% for user_game in playing_games %}
                 <div class="game" data-id="{{ user_game.game.id }}">
+                    <a href="{% url 'games:game_detail' user_game.game_id %}" style="color: inherit; text-decoration: none; align-items: center;">
                     {{ user_game.game.title }}
                     {% if user.is_authenticated and request.user.username == user.username %}
                         <button class="delete-game">&#x2715;</button>
                     {% endif %}
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -75,10 +77,12 @@
                 <h3>Will Play</h3>
                 {% for user_game in will_play_games %}
                 <div class="game" data-id="{{ user_game.game.id }}">
-                    {{ user_game.game.title }}
-                    {% if user.is_authenticated and request.user.username == user.username %}
-                        <button class="delete-game">&#x2715;</button>
-                    {% endif %}
+                    <a href="{% url 'games:game_detail' user_game.game_id %}" style="color: inherit; text-decoration: none; align-items: center;">
+                        {{ user_game.game.title }}
+                        {% if user.is_authenticated and request.user.username == user.username %}
+                            <button class="delete-game">&#x2715;</button>
+                        {% endif %}
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -87,15 +91,19 @@
                 <h3>Finished</h3>
                 {% for user_game in finished_games %}
                 <div class="game" data-id="{{ user_game.game.id }}">
+                    <a href="{% url 'games:game_detail' user_game.game_id %}" style="color: inherit; text-decoration: none; align-items: center;">
                     {{ user_game.game.title }}
                     {% if user.is_authenticated and request.user.username == user.username %}
                         <button class="delete-game">&#x2715;</button>
+                    </a>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
         </div>
+        {% if user.is_authenticated and request.user.username == user.username %}
         <a href="{% url 'games:add_game' %}" class="btn btn-primary">Add Game</a>
+        {% endif %}
     </div>
 
 {% endblock %}
@@ -156,7 +164,7 @@
                 var game_id = $(this).parent().data('id');
 
                 $.ajax({
-                    url: '{% url 'games:delete_game' %}',  // replace with the actual URL of your delete view
+                    url: '{% url 'games:remove_game' %}',  // replace with the actual URL of your delete view
                     method: 'POST',
                     data: {
                         'game_id': game_id,
@@ -173,7 +181,7 @@
                 var game_id = $(this).parent().data('id');
 
                 $.ajax({
-                    url: '{% url 'games:delete_game' %}',  // replace with the actual URL of your delete view
+                    url: '{% url 'games:remove_game' %}',  // replace with the actual URL of your delete view
                     method: 'POST',
                     data: {
                         'game_id': game_id,

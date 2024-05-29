@@ -85,3 +85,6 @@ def profile_page(request, username):
 def social(request):
     users = User.objects.all()
     return render(request, 'authentication/social.html', {'users': users})
+
+def aboutus(request):
+    return render(request, 'authentication/aboutus.html', {})

@@ -34,18 +34,49 @@
                 {% endfor %}
                 <p>Average rating: {{ game.average_rating }}</p>
             </div>
+            {% if user.is_authenticated %}
+                 <p><a href="{% url 'games:add_game_with_id' game.id %}" class="btn btn-primary">Add Game</a></p>
+            {% endif %}
         </div>
       <div class="row">
-        <div class="col">
-          1 of 3
+        <div class="col" style="align-items: center; display: flex; padding-bottom: 10px; padding-top: 10px; margin-top: 3%; text-align: left; border: 1px solid black; border-radius: 10px; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);">
+            <a href="{{ game.metacritic }}" style="color: inherit; text-decoration: none; display: flex; align-items: center;">
+                <img src="{% static 'metacritic.png' %}" alt="Metacritic logo" class="logo">
+                <h1>Metacritic Page</h1>
+            </a>
         </div>
-        <div class="col">
-          2 of 3
-        </div>
-        <div class="col">
-          xd
-        </div>
+            <div class="col" style="align-items: center;  display: flex; padding-bottom: 10px; padding-top: 10px; margin-top: 3%; margin-left: 3%; text-align: left; border: 1px solid black; border-radius: 10px; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);">
+                <a href="{{ game.hltb }}" style="color: inherit; text-decoration: none; display: flex; align-items: center;">
+                    <img src="{% static 'hltb.png' %}" alt="Hltb logo" class="logo">
+                    <h1>How Long to Beat Page</h1>
+                </a>
+            </div>
       </div>
+    <div class="row">
+        <div class="col" style="padding: 2%; margin-top: 15px; text-align: left; border: 1px solid black; border-radius: 10px; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);">
+            <h3>Comments</h3>
+            <ul>
+                {% for comment in comments %}
+                    <li>
+                        <strong>{{ comment.user.username }}</strong> ({{ comment.created_at }}): {{ comment.comment }}
+                    </li>
+                {% empty %}
+                    <li>No comments yet.</li>
+                {% endfor %}
+            </ul>
+
+            {% if user.is_authenticated %}
+                <h3>Add a comment</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ comment_form }}
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            {% else %}
+                <p>You need to <a href="{% url 'members:login' %}">login</a> to add a comment.</p>
+            {% endif %}
+        </div>
+    </div>
     </div>
 </div>
 {% endblock %}
@@ -74,6 +105,11 @@
         star.addEventListener('click', function() {
             if (!user_authenticated) {
                 alert('You must be logged in to rate a game.');
+                window.location.href = "{% url 'members:login' %}";
+                return;
+            }
+            if (!{{ user_has_game|yesno:"true,false" }}) {
+                alert('You must have this game in your profile to rate it.');
                 return;
             }
             var value = this.getAttribute('data-value');
@@ -116,5 +152,6 @@
     .star.hover, .star.rated {
         color: orange;
     }
+}
 </style>
 {% endblock %}
