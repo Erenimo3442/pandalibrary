@@ -122,7 +122,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "pics"
+    BASE_DIR / "pics",
+    BASE_DIR / "media/videos",
+
 ]
 
 # Default primary key field type

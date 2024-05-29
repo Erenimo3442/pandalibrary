@@ -180,7 +180,7 @@ def suggestion_create(request):
         suggestion = GameSuggestion(title=title, suggested_by=request.user)
         suggestion.save()
         messages.success(request, 'Suggestion has been created successfully')
-        return redirect('games:game_suggestions')
+        return redirect('games:game_list')
     else:
         form = SuggestionsForm()
     return render(request, 'games/suggestion_create.html', {'form': form})

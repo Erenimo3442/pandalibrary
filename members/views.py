@@ -6,10 +6,6 @@ from .forms import SignUpForm, UserGamesForm
 from .models import UserGames
 
 
-from .models import UserGames
-
-
-
 # Create your views here.
 def signup_user(request):
     if request.method == 'POST':
@@ -17,9 +13,11 @@ def signup_user(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            print("User created and logged in")
             messages.success(request, 'Your account has been created and you have successfully logged in')
             return redirect('index')
         else:
+            print(form.errors)
             messages.error(request, 'Error creating your account. Please try again')
             return redirect('members:signup')
     else:
@@ -47,8 +45,8 @@ def logout_user(request):
     messages.success(request, 'You have successfully logged out')
     return redirect('index')
 
-def profile_page(request, username):
 
+def profile_page(request, username):
     if username is None:
         user = request.user
     else:
@@ -82,9 +80,11 @@ def profile_page(request, username):
 
     return render(request, 'authentication/profile.html', context)
 
+
 def social(request):
     users = User.objects.all()
     return render(request, 'authentication/social.html', {'users': users})
+
 
 def aboutus(request):
     return render(request, 'authentication/aboutus.html', {})
